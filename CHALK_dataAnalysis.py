@@ -13,10 +13,10 @@ class systemObj:
     openPorts = []
     numOpenPorts = 0
     openPortPercent = 0
-    systemRanking = 0
+    systemRanking = False
     serverCheck = False
     vulnerabilityPercent = 0.0
-    numVulnerabilities = 0
+    numberVulnerabilities = 0
     vulnerabilities = []
 
     # Current OS and up to date = 0
@@ -97,7 +97,6 @@ def analyseNmapData():
                     tempSystem = systemObj()
                     tempSystem.ipAddress = ipAddress
                     tempSystem.SystemID = calcSystemId()
-                    tempSystem.operatingSystem = osDetect(tempSystem)
                     #tempSystem.operatingSystem = osDetect(ipAddress)
                     #if "server" in tempSystem.operatingSystem.lower():
                         #tempSystem.serverCheck = True
@@ -112,61 +111,27 @@ def analyseNmapData():
                     print('System with IP Address: ' + ipAddress + ' added to the results list.')
                     tempSystem.openPorts = ports
                     tempSystem.numOpenPorts = len(ports)
-                    tempSystem.systemRanking = rankSystem(tempSystem)
+                    #tempSystem.systemRanking = rankSystem(tempSystem)
                     systemList.append(tempSystem)
-                    print(tempSystem.systemRanking)
                     ports = []
                     tempSystem = None
                     ipAddress = ''
             else:
                 continue
 
-def rankSystem(system):
-    systemRanking = 0
-    # Rank Based on OS and Service pack first.
-    if system.operatingSystem == 'Windows 10' or system.operatingSystem =='Linux':
-        systemRanking = 1
-    if system.operatingSystem == 'Windows 8':
-        systemRanking = 0.9
-    if system.operatingSystem == 'Windows 7':
-        systemRanking = 0.8
-    if system.operatingSystem == 'Windows XP':
-        systemRanking = 0.5
-    if system.serverCheck and system.vulnerabilityPercent > 0.3:
-        systemRanking = 0.5
-    # For every vulnerability found:
-    systemRanking = systemRanking - ((0.025*system.numVulnerabilities) + (0.01*system.numOpenPorts))
-
-    return systemRanking
-
-#def detectHostProgram():
-    # Scan csv headings.
-    # Based on a match score of over 60%, determine what program was used to create the data in the file.
-    # Use multiple lists to compare heading names.
-
-def osDetect(system):
-    os = ''
-    if system.SystemID == 0:
-        os = 'Windows XP'
-    if system.SystemID == 1:
-        os = 'Windows 7'
-    if system.SystemID == 2:
-        os = 'Linux'
-    return os
-
-#def osDetect(ipAddress):
-#    nm = nmap.PortScanner()
-#    scan_range = nm.scan(hosts=ipAddress, arguments="-O")
-#    x = nm['127.0.0.1']['osmatch']
-#    os=x[0]
-#    return os['name']
+def osDetect(ipAddress):
+    nm = nmap.PortScanner()
+    scan_range = nm.scan(hosts=ipAddress, arguments="-O")
+    x = nm['127.0.0.1']['osmatch']
+    os=x[0]
+    return os['name']
 
 def checkSystems():
     for system in systemList:
         print('System ID: ' + str(system.SystemID))
         print('IP Address: ' + system.ipAddress)
         print('Operating System: ' + system.operatingSystem)
-        print('Number of Potential Vulnerabilities: ' + str(system.numVulnerabilities))
+        print('Number of Potential Vulnerabilities: ' + str(system.numberVulnerabilities))
         print('Open Ports: ' + str(system.openPorts))
 
 
