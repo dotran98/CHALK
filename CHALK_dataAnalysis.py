@@ -133,10 +133,3 @@ def checkSystems():
         print('Operating System: ' + system.operatingSystem)
         print('Number of Potential Vulnerabilities: ' + str(system.numberVulnerabilities))
         print('Open Ports: ' + str(system.openPorts))
-
-
-def main():
-    analyseNmapData()
-    checkSystems()
-
-main()
