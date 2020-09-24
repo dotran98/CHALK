@@ -17,6 +17,7 @@ def collectNodes(systemList):
         #collect the service nodes
         service_nodes.append(system.openPorts)
 
+#not yet complete
 def cleanseInput():
     return null
 
