@@ -66,7 +66,7 @@ def showData(id):
         print('Number of Potential Vulnerabilities: ' + str(system.numberVulnerabilities))
 
 def main():
-    da.analyseNmapData() # takes the data from the file using dataAnalysis2
+    da.analyseNmapData() # takes the data from the file using dataAnalysis
     #da.checkSystems()    # checks this has been done correctly
     collectNodes(da.systemList)
     drawNetwork()
