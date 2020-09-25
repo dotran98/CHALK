@@ -14,7 +14,7 @@ class Ui_MainWindow(object):
         font.setWeight(50)
         MainWindow.setFont(font)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("logo.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("icon\logo.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         MainWindow.setLayoutDirection(QtCore.Qt.LeftToRight)
 
@@ -44,7 +44,7 @@ class Ui_MainWindow(object):
         self.welcomewidget = QtWidgets.QWidget()
         horizontallayout = QtWidgets.QHBoxLayout(self.welcomewidget)
         label = Label(self.welcomewidget)
-        piximap = QtGui.QPixmap('welcome.png')
+        piximap = QtGui.QPixmap('icon\welcome.png')
         label.setPixmap(piximap)
         horizontallayout.addWidget(label)
         self.centralwidget.addWidget(self.welcomewidget)
