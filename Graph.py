@@ -4,35 +4,59 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import networkx as nx
 
 class Graph(FigureCanvas):
-    def __init__(self, parent=None):
+    def __init__(self, system_list, parent=None):
         super(Graph, self).__init__(Figure())
         self.setParent(parent)
-
+        [self.system_nodes, self.service_nodes] = self.collectNodes(system_list)
         self.figure = plt.figure()
         ax = plt.Axes(self.figure, [0., 0., 1., 1.])
         ax.set_axis_off()
         self.figure.add_axes(ax)
         self.canvas = FigureCanvas(self.figure)
-        G = nx.Graph()
+        self.drawNetwork()
 
-        G.add_edge('PC 1', 'Server A', weight=0.1)
-        G.add_edge('Database', 'Server B', weight=0.6)
-        G.add_edge('Server A', 'Server B', weight=0.1)
-        G.add_edge('PC 1', 'Server B', weight=0.6)
+    def collectNodes(self, system_list):
+        system_nodes = []
+        service_nodes = []
+        for system in system_list:
+            inpt = 'System ' + str(system.SystemID), system.ip_address  # ID and IP
+            # inpt = system.operatingSystem, system.ipAddress #OS and IP (not working)
+            system_nodes.append(inpt)
 
-        # logic for whether an edge is small or large, later used to determine if an edge will be filled or dashed out
-        elarge = [(u, v) for (u, v, d) in G.edges(data=True) if d['weight'] > 0.5]
-        esmall = [(u, v) for (u, v, d) in G.edges(data=True) if d['weight'] <= 0.5]
+            # collect the service nodes
+            service_nodes.append(system.openPorts)
+        return [system_nodes, service_nodes]
 
-        # positions for all nodes
+    def drawNetwork(self):
+        G = nx.Graph()  # creates the graph object
+
+        # adding the system nodes
+        G.add_nodes_from(self.system_nodes)
+
+        # this is temporary service data, the data needs to come through to this file cleaner than it does from dataAnalysis 2
+        tempServiceList = [
+            ['"21:ftp"', '"22:ssh"', '"25:smtp"', '"53:domain"', '"80:http"', '"110:pop3"', '"143:imap"', '"389:idap"',
+             '"443:https"', '"464:kpasswd5"', '"465:smtps"', '"587:submission"', '"749:kerberos-adm"', '"993:imaps"',
+             '"995:pop3s"', '"3306:mysql"', '"7025:vmsvc-2"'],
+            ['"21:ftp"', '"22:ssh"', '"25:smtp"', '"53:domain"', '"80:http"', '"995:pop3s"', '"3306:mysql"',
+             '"7025:vmsvc-2"'],
+            ['"21:ftp"', '"22:ssh"', '"80:http"', '"995:pop3s"', '"3306:mysql"', '"7025:vmsvc-2"']]
+
+        # loop through the services, one system at a time, each index in the service list is another system
+        sys_count = 0
+        for x in tempServiceList:
+            tempList = x
+            # for all the services being used by a system
+            for y in tempList:
+                G.add_edge(self.system_nodes[sys_count], y)
+            sys_count = sys_count + 1
+
+        # nx.draw(G, with_labels = True, size=300)
+
         pos = nx.spring_layout(G)
 
-        # nodes
-        nx.draw_networkx_nodes(G, pos, node_size=900)
+        nx.draw_networkx_nodes(G, pos, node_size=300, node_color='r')
 
-        # edges
-        nx.draw_networkx_edges(G, pos, edgelist=elarge, width=3, edge_color='r')
-        nx.draw_networkx_edges(G, pos, edgelist=esmall, width=3, alpha=0.5, edge_color='b', style='dashed')
+        nx.draw_networkx_edges(G, pos)
 
-        # labels
         nx.draw_networkx_labels(G, pos, font_size=10, font_family='sans-serif')
