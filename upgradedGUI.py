@@ -2,9 +2,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 from Label import Label
 from Graph import Graph
+import CHALK_dataAnalysis as da
 
 
 class Ui_MainWindow(object):
+    def __init__(self):
+        self.data_hub = da.Data_Analysis()
+
     def setupUi(self, MainWindow):
         # Main Window
         MainWindow.setObjectName("MainWindow")
@@ -18,7 +22,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowIcon(icon)
         MainWindow.setLayoutDirection(QtCore.Qt.LeftToRight)
 
-        #Tool bar
+        # Tool bar
         tool_bar = QtWidgets.QToolBar('Toolbar', MainWindow)
         tool_bar.setObjectName("ToolBar")
         scanning = QtWidgets.QAction(QtGui.QIcon('icon\play.png'), 'Scan', MainWindow)
@@ -49,9 +53,22 @@ class Ui_MainWindow(object):
         horizontallayout.addWidget(label)
         self.centralwidget.addWidget(self.welcomewidget)
 
-        # Scan widget
-        self.scan_widget = QtWidgets.QWidget()
-        self.centralwidget.addWidget(self.scan_widget)
+        # Result widget
+        self.result_widget = QtWidgets.QWidget()
+        horizontalLayout = QtWidgets.QHBoxLayout(self.result_widget)
+        horizontalLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.tabWidget = QtWidgets.QTabWidget(self.result_widget)
+        horizontalLayout.addWidget(self.tabWidget)
+
+        line = QtWidgets.QFrame(self.result_widget)
+        line.setFrameShape(QtWidgets.QFrame.VLine)
+        line.setFrameShadow(QtWidgets.QFrame.Sunken)
+        horizontalLayout.addWidget(line)
+
+        listView = QtWidgets.QListView(self.result_widget)
+        horizontalLayout.addWidget(listView, 0, QtCore.Qt.AlignRight)
+        self.centralwidget.addWidget(self.result_widget)
 
         self.retranslateUi(MainWindow)
         self.centralwidget.setCurrentIndex(0)
@@ -63,38 +80,14 @@ class Ui_MainWindow(object):
 
     # Scanning function toolbar
     def __scan(self):
-        try:
-            horizontalLayout = QtWidgets.QHBoxLayout(self.scan_widget)
-            horizontalLayout.setContentsMargins(0, 0, 0, 0)
-            horizontalLayout.setObjectName("horizontalLayout")
+        self.centralwidget.setCurrentIndex(0)
 
-            tabWidget = QtWidgets.QTabWidget(self.scan_widget)
-            tabWidget.setObjectName("tabWidget")
-            tab = Graph()
-            tab.draw_idle()
-            tab.setObjectName("tab")
-            tabWidget.addTab(tab, "")
+    def display_result(self):
+        tab = Graph(self.data_hub.system_list)
+        tab.draw_idle()
+        self.tabWidget.addTab(tab, "Network")
 
-            tab_2 = QtWidgets.QWidget()
-            tab_2.setObjectName("tab_2")
-            tabWidget.addTab(tab_2, "")
-
-            tabWidget.setTabText(0, 'Network')
-            tabWidget.setTabText(1, 'Result 2')
-            horizontalLayout.addWidget(tabWidget)
-
-            line = QtWidgets.QFrame(self.scan_widget)
-            line.setFrameShape(QtWidgets.QFrame.VLine)
-            line.setFrameShadow(QtWidgets.QFrame.Sunken)
-            line.setObjectName("line")
-            horizontalLayout.addWidget(line)
-
-            listView = QtWidgets.QListView(self.scan_widget)
-            listView.setObjectName("listView")
-            horizontalLayout.addWidget(listView, 0, QtCore.Qt.AlignRight)
-            self.centralwidget.setCurrentIndex(1)
-        except Exception as e:
-            print(e)
+        self.centralwidget.setCurrentIndex(1)
 
     # Import function toolbar
     def __import(self):
@@ -103,12 +96,13 @@ class Ui_MainWindow(object):
                                                                   "C:/",
                                                                   "All Files (*);;Text Files (*.txt)")
         if ok:
-            file = open(filename_path, 'r')
-        print(filename_path)
+            self.data_hub.offline_analyse_data(filename_path)
+            self.display_result()
 
     # Export function toolbar
     def __export(self):
         print('Exporting')
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
