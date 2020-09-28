@@ -27,24 +27,29 @@ class Graph(FigureCanvas):
             service_nodes.append(system.openPorts)
         return [system_nodes, service_nodes]
 
+    def cleanseInput(list):
+        clean = []
+        xCounter = 0
+        for x in list:
+            clean.append([])
+            temp1 = x
+            for y in temp1:
+                temp2 = y[0]
+                clean[xCounter].append(temp2)
+            xCounter += 1
+        return clean
+
     def drawNetwork(self):
         G = nx.Graph()  # creates the graph object
 
         # adding the system nodes
         G.add_nodes_from(self.system_nodes)
 
-        # this is temporary service data, the data needs to come through to this file cleaner than it does from dataAnalysis 2
-        tempServiceList = [
-            ['"21:ftp"', '"22:ssh"', '"25:smtp"', '"53:domain"', '"80:http"', '"110:pop3"', '"143:imap"', '"389:idap"',
-             '"443:https"', '"464:kpasswd5"', '"465:smtps"', '"587:submission"', '"749:kerberos-adm"', '"993:imaps"',
-             '"995:pop3s"', '"3306:mysql"', '"7025:vmsvc-2"'],
-            ['"21:ftp"', '"22:ssh"', '"25:smtp"', '"53:domain"', '"80:http"', '"995:pop3s"', '"3306:mysql"',
-             '"7025:vmsvc-2"'],
-            ['"21:ftp"', '"22:ssh"', '"80:http"', '"995:pop3s"', '"3306:mysql"', '"7025:vmsvc-2"']]
+        serviceList = cleanseInput(service_nodes)
 
         # loop through the services, one system at a time, each index in the service list is another system
         sys_count = 0
-        for x in tempServiceList:
+        for x in service_nodes:
             tempList = x
             # for all the services being used by a system
             for y in tempList:
