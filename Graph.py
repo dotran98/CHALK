@@ -49,7 +49,7 @@ class Graph(FigureCanvas):
 
         # loop through the services, one system at a time, each index in the service list is another system
         sys_count = 0
-        for x in service_nodes:
+        for x in serviceList:
             tempList = x
             # for all the services being used by a system
             for y in tempList:
