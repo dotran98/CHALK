@@ -27,7 +27,7 @@ class Graph(FigureCanvas):
             service_nodes.append(system.openPorts)
         return [system_nodes, service_nodes]
 
-    def cleanseInput(list):
+    def cleanseInput(self, list):
         clean = []
         xCounter = 0
         for x in list:
@@ -45,7 +45,7 @@ class Graph(FigureCanvas):
         # adding the system nodes
         G.add_nodes_from(self.system_nodes)
 
-        serviceList = cleanseInput(service_nodes)
+        serviceList = self.cleanseInput(self.service_nodes)
 
         # loop through the services, one system at a time, each index in the service list is another system
         sys_count = 0
@@ -65,3 +65,4 @@ class Graph(FigureCanvas):
         nx.draw_networkx_edges(G, pos)
 
         nx.draw_networkx_labels(G, pos, font_size=10, font_family='sans-serif')
+
