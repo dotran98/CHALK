@@ -1,13 +1,18 @@
+import base64
+from io import BytesIO
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 from Label import Label
 from Graph import Graph
 import CHALK_dataAnalysis as da
+from PDF import PDF
 
 
 class Ui_MainWindow(object):
     def __init__(self):
         self.data_hub = da.Data_Analysis()
+        self.bio = BytesIO()
 
     def setupUi(self, MainWindow):
         # Main Window
@@ -26,15 +31,18 @@ class Ui_MainWindow(object):
         tool_bar = QtWidgets.QToolBar('Toolbar', MainWindow)
         tool_bar.setObjectName("ToolBar")
         scanning = QtWidgets.QAction(QtGui.QIcon('icon\play.png'), 'Scan', MainWindow)
+        scanning.setShortcut('Space')
         scanning.triggered.connect(self.__scan)
         scanning.setObjectName("Scanning")
         tool_bar.addAction(scanning)
         importing = QtWidgets.QAction(QtGui.QIcon('icon\import.png'), 'Import', MainWindow)
         importing.triggered.connect(self.__import)
+        importing.setShortcut('Ctrl+O')
         importing.setObjectName("Importing")
         tool_bar.addAction(importing)
         exporting = QtWidgets.QAction(QtGui.QIcon('icon\export.png'), 'Export', MainWindow)
         exporting.triggered.connect(self.__export)
+        exporting.setShortcut('Ctrl+S')
         exporting.setObjectName("Exporting")
         tool_bar.addAction(exporting)
         MainWindow.addToolBar(tool_bar)
@@ -83,9 +91,13 @@ class Ui_MainWindow(object):
         self.centralwidget.setCurrentIndex(0)
 
     def display_result(self):
-        tab = Graph(self.data_hub.system_list)
-        tab.draw_idle()
-        self.tabWidget.addTab(tab, "Network")
+        try:
+            tab = Graph(self.data_hub.system_list)
+            tab.draw_idle()
+            tab.figure.savefig(self.bio, format="png")
+            self.tabWidget.addTab(tab, "Network")
+        except Exception as e:
+            print(e)
 
         self.centralwidget.setCurrentIndex(1)
 
@@ -93,7 +105,7 @@ class Ui_MainWindow(object):
     def __import(self):
         filename_path, ok = QtWidgets.QFileDialog.getOpenFileName(MainWindow,
                                                                   "Open File",
-                                                                  "C:/",
+                                                                  "",
                                                                   "All Files (*);;Text Files (*.txt)")
         if ok:
             self.data_hub.offline_analyse_data(filename_path)
@@ -101,7 +113,61 @@ class Ui_MainWindow(object):
 
     # Export function toolbar
     def __export(self):
-        print('Exporting')
+        try:
+            result = QtWidgets.QFileDialog.getSaveFileName(MainWindow,
+                                                           'Save File', '',
+                                                           "PDF (*.pdf)")
+            file_path = result[0]
+            # Create PDF
+            pdf = PDF(orientation='P', unit='mm', format='A4')
+            pdf.add_page()
+            # Name of the report
+            page_width = pdf.w - 2 * pdf.l_margin
+            pdf.set_font('Times', 'B', 20.0)
+            pdf.cell(page_width, 0.0, 'Network Report', align='C')
+            pdf.ln(10)
+            # List of system details
+            pdf.set_font('Times', 'B', 16.0)
+            pdf.cell(page_width, 0.0, '1. System List:')
+            pdf.ln(10)
+            pdf.set_font('Times', '', 14)
+            for system in self.data_hub.system_list:
+                pdf.cell(10, 0.0)
+                pdf.cell(page_width, 0.0, "System ID: " + str(system.SystemID))
+                pdf.ln(10)
+                pdf.cell(20, 0.0)
+                pdf.cell(page_width, 0.0, "IP: " + str(system.ip_address))
+                pdf.ln(10)
+                pdf.cell(20, 0.0)
+                pdf.cell(page_width, 0.0, "Operating System:" + str(system.operatingSystem))
+                pdf.ln(10)
+                pdf.cell(20, 0.0)
+                pdf.cell(page_width, 0.0, "Ports and Services: {}".format(system.numOpenPorts))
+                pdf.ln(10)
+                for port in system.openPorts:
+                    pdf.cell(30, 0.0)
+                    pdf.cell(page_width, 0.0, port[0])
+                    pdf.ln(10)
+                pdf.cell(20, 0.0)
+                pdf.cell(page_width, 0.0, "Vulnerabilities: " + str(system.numberVulnerabilities))
+                pdf.ln(10)
+                for vul in system.vulnerabilities:
+                    pdf.cell(30, 0.0)
+                    pdf.cell(page_width, 0.0, str(vul))
+                    pdf.ln(10)
+
+            pdf.add_page(orientation='L')  # This page is for network visualization
+            pdf.set_font('Times', 'B', 16.0)
+            pdf.cell(page_width, 0.0, '2. Network Visualization:')
+            pdf.ln(5)
+            graph_path = 'data:image/png;base64,{}'.format(base64.b64encode(self.bio.getvalue()).decode())
+            print(graph_path)
+            pdf.image(name=graph_path, type='png')
+            pdf.output(file_path)
+        except Exception as e:
+            print(e)
+        finally:
+            print('Done')
 
 
 if __name__ == "__main__":
