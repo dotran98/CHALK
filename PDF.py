@@ -9,7 +9,7 @@ from fpdf.py3k import PY3K, b
 
 
 class PDF(FPDF):
-
+    # rewrite a method in FPDF class to read base64 of the image
     def _parsepng(self, name):
         # Extract info from a PNG file
         if name.startswith("http://") or name.startswith("https://"):

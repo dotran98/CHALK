@@ -1,6 +1,6 @@
 from PyQt5 import QtGui, QtWidgets
 
-
+# This class allows picture to be resizable according to the window size
 class Label(QtWidgets.QWidget):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent=parent)
