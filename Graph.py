@@ -1,9 +1,14 @@
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backend_bases import MouseEvent
 import networkx as nx
 
 class Graph(FigureCanvas):
+
+    #def onClick(event):
+    #    return 'you pressed', event.button, event.xdata, event.ydata
+
     def __init__(self, system_list, parent=None):
         super(Graph, self).__init__(Figure())
         self.setParent(parent)
@@ -13,8 +18,10 @@ class Graph(FigureCanvas):
         ax.set_axis_off()
         self.figure.add_axes(ax)
         self.canvas = FigureCanvas(self.figure)
+        #cid = self.canvas.mpl_connect('button_press_event', onClick()) #interactive testing
         self.drawNetwork()
 
+    # collects all the info needed to display the nodes
     def collectNodes(self, system_list):
         system_nodes = []
         service_nodes = []
@@ -27,6 +34,8 @@ class Graph(FigureCanvas):
             service_nodes.append(system.openPorts)
         return [system_nodes, service_nodes]
 
+    # this function cleanses the input from dataAnalysis.py so that it is more readable
+    # networkx can only handle hashed objects, so that data needs to be hashable
     def cleanseInput(self, list):
         clean = []
         xCounter = 0
@@ -53,16 +62,20 @@ class Graph(FigureCanvas):
             tempList = x
             # for all the services being used by a system
             for y in tempList:
+                G.add_node(y)
+
                 G.add_edge(self.system_nodes[sys_count], y)
             sys_count = sys_count + 1
 
-        # nx.draw(G, with_labels = True, size=300)
-
+        # position layout for the nodes, edges and labels
         pos = nx.spring_layout(G)
 
-        nx.draw_networkx_nodes(G, pos, node_size=300, node_color='r')
+        # draw the nodes on the graph
+        nx.draw_networkx_nodes(G, pos, node_size=300, node_color='b')
+        nx.draw_networkx_nodes(G, pos, nodelist = self.system_nodes, node_size=500, node_color='r')
 
+        #draw the edges on the graph
         nx.draw_networkx_edges(G, pos)
 
+        # draw the labels
         nx.draw_networkx_labels(G, pos, font_size=10, font_family='sans-serif')
-
