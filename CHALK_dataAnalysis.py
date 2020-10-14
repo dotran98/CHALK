@@ -2,7 +2,7 @@ import csv
 import nmap
 import re
 
-filename = "results.csv"
+filename = "finalresult.csv"
 systemList = []
 scanBoolean = True
 
@@ -10,27 +10,20 @@ class systemObj:
     SystemID = 0
     ipAddress = ""
     operatingSystem = ""
+    shortPorts = []
     openPorts = []
     numOpenPorts = 0
     openPortPercent = 0
-    systemRanking = False
-    serverCheck = False
+    systemRanking = 0
     vulnerabilityPercent = 0.0
     numberVulnerabilities = 0
     vulnerabilities = []
 
-    # Current OS and up to date = 0
-    # Current OS but out of date = 1
-    # Previous Version OS = 2
-    # Previous version OS but out of date = 3
-    # Continue to add 1 for each preceding OS version and if they are out of date.
-    # Example - Win10 up to date = 0
-
 def getIpAddress(rowString):
     ipAddress =""
-    regex = '\d{3}[.]\d{3}[.]\d{3}[.]\d{3}'
+    regex = '\d{1,3}[.]\d{1,3}[.]\d{1,3}[.]\d{1,3}'
     ipAddress = re.findall(regex, rowString)
-    return ipAddress[0]
+    return str(ipAddress[0])
 
 def calcSystemId():
     highestId = 0
@@ -43,25 +36,31 @@ def calcSystemId():
     return highestId + 1
 
 def getPorts(rowString):
+    regex = '[0-9]+[:][ ]'
     ports = []
-    portNum = ""
-    portDef = ""
-    if re.search("open", rowString):
-        for char in rowString:
-            if char != "/":
-                portNum = portNum + char
-            else:
-                break
-        count = 0
-        for char in rowString:
-            if char != " " and count != 2:
-                continue
-            elif char == " ":
-                count += 1
-            else:
-                portDef = portDef + char
-        ports.append((portNum + ":" + portDef).strip("\n"))
+    port = []
+    temp = rowString.split("}")
+    portName = ''
+    for e in temp:
+        x = str(e)
+        if re.search(regex, x):
+            a = str(re.findall(regex, x))
+            port.append(a.replace(": ", "").replace("'", "").replace("]", "").replace("[", ""))
+            charCount = 0
+            portName = ''
+            for c in x:
+                if c == ',':
+                    charCount = charCount + 1
+                if charCount == 4:
+                    break
+                if charCount == 3:
+                        portName = portName + c
+            port.append(portName.replace("'", "").replace("nam': ", "").replace(", ", ""))
+            port.append(x.replace("tcp: {", "")[2:])
+            ports.append(port)
+            port = []
     return ports
+
 
 def systemCheck(ipAddress):
     sys = False
@@ -72,11 +71,29 @@ def systemCheck(ipAddress):
                 print('System with Ip Address ' + ipAddress + ' already in the result list')
     return sys
 
-def analyseNmapData():
+def findPosition(ipAdd):
+    position = 0
+    for x in systemList:
+        if int(x.ipAddress.replace(".", "")) - int(ipAdd) == 0:
+            break
+        else:
+            position += 1
+    return position
+
+def shortList(lst):
+    resList = []
+    temp = lst[0]
+    for x in temp:
+        a = x[0]
+        b = x[1]
+        resList.append(str(a) + ":" + str(b).replace('name: ', ''))
+    return resList
+
+def analyseData():
     global filename
     global systemList
-    regex1 = 'Nmap scan report'
-    regex2 = 'open'
+    regex = '[0-9]+[:][ ]'
+
     if scanBoolean == True:
         lineCount=0 #Remove this and write code to run the scanning code.
     else:
@@ -89,9 +106,15 @@ def analyseNmapData():
         rowCount = -1
         skipRows = False
         csvReader = csv.reader(csvFile)
+        nmapRow = True
+        recordFlag = 0
+        vulnerableList = []
+        tempAddress = ''
         for row in csvFile:
             rowCount += 1
-            if re.search(regex1, row):
+            if re.search("VULNERABILITY SCAN RESULTS", row, re.IGNORECASE):
+                nmapRow = False
+            if nmapRow and re.search(regex, row):
                 ipAddress = getIpAddress(row)
                 if not systemCheck(ipAddress):
                     tempSystem = systemObj()
@@ -100,24 +123,50 @@ def analyseNmapData():
                     #tempSystem.operatingSystem = osDetect(ipAddress)
                     #if "server" in tempSystem.operatingSystem.lower():
                         #tempSystem.serverCheck = True
-                else:
-                    skipRpws =True
-            elif re.search(regex2, row) and not skipRows:
-                ports.append(getPorts(row))
-            elif row.isspace() and rowCount != 0:
-                if skipRows:
-                    skipRows = False
-                else:
+                    ports.append(getPorts(row))
                     print('System with IP Address: ' + ipAddress + ' added to the results list.')
                     tempSystem.openPorts = ports
-                    tempSystem.numOpenPorts = len(ports)
-                    #tempSystem.systemRanking = rankSystem(tempSystem)
+                    tempSystem.shortPorts = shortList(tempSystem.openPorts)
+                    tempSystem.numOpenPorts = len(tempSystem.shortPorts)
                     systemList.append(tempSystem)
                     ports = []
                     tempSystem = None
                     ipAddress = ''
-            else:
-                continue
+            if not nmapRow:
+                if str(row).__contains__("Target IP"):
+                    tempAddress = getIpAddress(row)
+                    vulnerableList.clear()
+                elif str(row).__contains__("Start Time"):
+                    recordFlag = 1
+                elif str(row).__contains__("-----") or str(row).__contains__("items checked"):
+                    continue
+                elif str(row).__contains__("host(s)"):
+                    recordFlag = 0
+                elif str(row).__contains__("End Time"):
+                    posn = findPosition(tempAddress.replace(".", ""))
+                    if systemList[posn].ipAddress == tempAddress:
+                        # This section was added as concatenation was occuring with the vulnerablelist variable
+                        # even though it was being appropriately cleared. I assume it has something to do with
+                        # storing, retrieving and updating objects from a list and/or memory.
+                        if len(systemList[posn].vulnerabilities) > 0:
+                            temp = systemList[posn].vulnerabilities
+                            temp.append(vulnerableList)
+                            systemList[posn].vulnerabilities = temp
+                            systemList[posn].numberVulnerabilities += len(vulnerableList) - 1
+                        else:
+                            systemList[posn].vulnerabilities = vulnerableList
+                            systemList[posn].numberVulnerabilities += len(vulnerableList) - 1
+                    vulnerableList = []
+                elif recordFlag > 0:
+                    vulnerableList.append(row[2:])
+    for sys in systemList:
+        sys.systemRanking = rankSystem(sys)
+
+def rankSystem(sys):
+    rank = 1
+    rank -= (sys.numOpenPorts * 0.01)
+    rank -= (sys.numberVulnerabilities * 0.05)
+    return "%.2f" % rank
 
 def osDetect(ipAddress):
     nm = nmap.PortScanner()
@@ -126,17 +175,23 @@ def osDetect(ipAddress):
     os=x[0]
     return os['name']
 
-def checkSystems():
+def checkSystems(flag) -> object:
     for system in systemList:
-        print('System ID: ' + str(system.SystemID))
-        print('IP Address: ' + system.ipAddress)
-        print('Operating System: ' + system.operatingSystem)
-        print('Number of Potential Vulnerabilities: ' + str(system.numberVulnerabilities))
-        print('Open Ports: ' + str(system.openPorts))
+        if flag == 'p':
+            print('System ID: ' + str(system.SystemID))
+            print('IP Address: ' + system.ipAddress)
+            print('Operating System: ' + system.operatingSystem)
+            print('Number of Potential Vulnerabilities: ' + str(system.numberVulnerabilities))
+            print('Number of Ports Open: ' + str(system.numOpenPorts))
+            print('Short Ports: ' + str(system.shortPorts))
+            print('Open Ports: ' + str(system.openPorts))
+            print('Vulnerabilities: ' + str(system.vulnerabilities))
+            print('System Ranking: ' + str(system.systemRanking))
 
 
 def main():
-    analyseNmapData()
-    checkSystems()
+    analyseData()
+    checkSystems("p")
+    print(len(systemList))
 
 main()
