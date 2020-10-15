@@ -253,15 +253,8 @@ class Data_Analysis():
                 print('Vulnerabilities: ' + str(system.vulnerabilities))
                 print('System Ranking: ' + str(system.systemRanking))
 
-
 if __name__ == '__main__':
     t = Data_Analysis()
     t.analyseData("result.csv")
     t.checkSystems("p")
     print(len(t.systemList))
-"""def main():
-    analyseData()
-    checkSystems("p")
-    print(len(systemList))
-
-main()"""
