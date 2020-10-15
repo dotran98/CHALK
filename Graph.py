@@ -6,17 +6,16 @@ import networkx as nx
 
 class Graph(FigureCanvas):
 
-    def __init__(self, system_list, parent=None):
+    def __init__(self, systemList, parent=None):
         super(Graph, self).__init__(Figure())
         self.setParent(parent)
-        [self.system_nodes, self.service_nodes] = self.collectNodes(system_list)
+        [self.system_nodes, self.service_nodes] = self.collectNodes(systemList)
         self.figure = plt.figure()
         ax = plt.Axes(self.figure, [0., 0., 1., 1.])
         #self.figure, ax = plt.subplots()
         ax.set_axis_off()
         self.figure.add_axes(ax)
         self.canvas = FigureCanvas(self.figure)
-
         self.node_positions = self.drawNetwork()
 
         # interactive nodes
@@ -38,11 +37,11 @@ class Graph(FigureCanvas):
         # print('you pressed ', event.button, ' at ', event.xdata, ' and ', event.ydata)
 
     # collects all the info needed to display the nodes
-    def collectNodes(self, system_list):
+    def collectNodes(self, systemList):
         system_nodes = []
         service_nodes = []
-        for system in system_list:
-            inpt = 'System ' + str(system.SystemID), system.ip_address  # ID and IP
+        for system in systemList:
+            inpt = 'System ' + str(system.SystemID), system.ipAddress  # ID and IP
             # inpt = system.operatingSystem, system.ipAddress #OS and IP (not working)
             system_nodes.append(inpt)
 
@@ -57,7 +56,7 @@ class Graph(FigureCanvas):
         xCounter = 0
         for x in list:
             clean.append([])
-            temp1 = x
+            temp1 = x[0]  # Tran added [0] next to x here
             for y in temp1:
                 temp2 = y[0]
                 clean[xCounter].append(temp2)
