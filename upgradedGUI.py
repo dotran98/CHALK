@@ -161,7 +161,6 @@ class Ui_MainWindow(object):
             pdf.cell(page_width, 0.0, '2. Network Visualization:')
             pdf.ln(5)
             graph_path = 'data:image/png;base64,{}'.format(base64.b64encode(self.bio.getvalue()).decode())
-            print(graph_path)
             pdf.image(name=graph_path, type='png')
             pdf.output(file_path)
         except Exception as e:
