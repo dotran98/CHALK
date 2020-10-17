@@ -7,12 +7,14 @@ from Label import Label
 from Graph import Graph
 import CHALK_dataAnalysis as da
 from PDF import PDF
+from CHALKscan import Scan
 
 
 class Ui_MainWindow(object):
     def __init__(self):
         self.data_hub = da.Data_Analysis()
         self.bio = BytesIO()
+        self.scan = Scan()
 
     def setupUi(self, MainWindow):
         # Main Window
@@ -89,6 +91,9 @@ class Ui_MainWindow(object):
     # Scanning function toolbar
     def __scan(self):
         self.centralwidget.setCurrentIndex(0)
+        self.scan.run() # run the scan
+        self.data_hub.analyseData('finalresult.csv') # process the csv file
+        self.display_result() # display network visualization
 
     def display_result(self):
         try:
