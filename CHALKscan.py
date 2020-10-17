@@ -43,6 +43,8 @@ class Scan:
 
         #replace final octet for mass scanning
         hostIP='.'.join(hostIP.split('.')[:-1]+["0"])+"/24"
+        
+        print("Starting network scan...")
 
         #establish scanning
         nmScan = nmap.PortScanner()
@@ -58,6 +60,8 @@ class Scan:
 
         #perform vulnerability scan and output to csv
         subprocess.call(['echo "\nVULNERABILITY SCAN RESULTS \n" >> finalresult.csv && nikto -h temp.txt - | awk -F "Nikto" "{print$2}" >> temp2.csv && strings temp2.csv >> finalresult.csv'], shell=True)
-
+        
+        print("Network scan has completed")
+        
         #clean up temporary files
         subprocess.call(["rm temp.txt && rm temp.csv && rm temp2.csv"], shell=True)
