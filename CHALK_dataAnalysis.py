@@ -221,8 +221,27 @@ class Data_Analysis():
     # Output: A rank value with 1 being 100 or no vulnerabilities.
     def rankSystem(self, sys):
         rank = 1
-        rank -= (sys.numOpenPorts * 0.01)
-        rank -= (sys.numberVulnerabilities * 0.05)
+        total = 0
+        avg = 0
+        lowestVuln = -1
+        for e in self.systemList:
+            total += int(e.numOpenPorts)
+            if lowestVuln == -1:
+                lowestVuln = e.numberVulnerabilities
+            elif e.numberVulnerabilities < lowestVuln:
+                lowestVuln = e.numberVulnerabilities
+            else:
+                continue
+        avg = total / len(self.systemList)
+        if int(sys.numOpenPorts) < avg:
+            rank = 0.7
+        elif int(sys.numOpenPorts) == avg:
+            rank = 0.8
+        elif int(sys.numOpenPorts) > avg and int(sys.numOpenPorts) < 1:
+            rank = 0.9
+        rank -= (sys.numberVulnerabilities * 0.03)
+        if rank < 0:
+            rank = 0
         return "%.2f" % rank
 
     # This function uses Nmap to detect the operating system that is running on
