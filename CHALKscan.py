@@ -45,7 +45,6 @@ class Scan:
         hostIP='.'.join(hostIP.split('.')[:-1]+["0"])+"/24"
 
         #establish scanning
-        print(hostIP)
         nmScan = nmap.PortScanner()
 
         #save scan results into csv
