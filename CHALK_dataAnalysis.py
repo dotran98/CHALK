@@ -192,7 +192,7 @@ class Data_Analysis():
                             tempSystem = systemObj()
                             tempSystem.ipAddress = str(ip)
                             tempSystem.SystemID = self.calcSystemId()
-                            #tempSystem.operatingSystem = osDetect(ipAddress)
+                            #tempSystem.operatingSystem = osDetect(str(ip))
                             ports.append(self.getPorts(row, str(ip)))
                             tempSystem.openPorts = ports
                             tempSystem.shortPorts = self.shortList(tempSystem.openPorts)
