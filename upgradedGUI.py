@@ -8,50 +8,51 @@ import CHALK_dataAnalysis as da
 from PDF import PDF
 from CHALKscan import Scan
 
+class Ui_MainWindow(QtWidgets.QMainWindow):
+    resized = QtCore.pyqtSignal()
+    data_hub = da.Data_Analysis()
+    bio = BytesIO()
+    scan = Scan()
 
-class Ui_MainWindow(object):
-    def __init__(self):
-        self.data_hub = da.Data_Analysis()
-        self.bio = BytesIO()
-        self.scan = Scan()
-
-    def setupUi(self, MainWindow):
+    def __init__(self, parent=None):
         # Main Window
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1233, 883)
+        super(Ui_MainWindow, self).__init__(parent=parent)
+        self.setObjectName("MainWindow")
+        self.resize(1233, 883)
         font = QtGui.QFont()
         font.setBold(False)
         font.setWeight(50)
-        MainWindow.setFont(font)
+        self.setFont(font)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icon/logo.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        MainWindow.setWindowIcon(icon)
-        MainWindow.setLayoutDirection(QtCore.Qt.LeftToRight)
+        icon.addPixmap(QtGui.QPixmap("icon\logo.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.setWindowIcon(icon)
+        self.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.setWindowTitle("CHALK")
 
         # Tool bar
-        tool_bar = QtWidgets.QToolBar('Toolbar', MainWindow)
+        tool_bar = QtWidgets.QToolBar('Toolbar', self)
         tool_bar.setObjectName("ToolBar")
-        scanning = QtWidgets.QAction(QtGui.QIcon('icon/play.png'), 'Scan', MainWindow)
+        scanning = QtWidgets.QAction(QtGui.QIcon('icon\play.png'), 'Scan', self)
         scanning.setShortcut('Space')
         scanning.triggered.connect(self.__scan)
         scanning.setObjectName("Scanning")
         tool_bar.addAction(scanning)
-        importing = QtWidgets.QAction(QtGui.QIcon('icon/import.png'), 'Import', MainWindow)
+        importing = QtWidgets.QAction(QtGui.QIcon('icon\import.png'), 'Import', self)
         importing.triggered.connect(self.__import)
         importing.setShortcut('Ctrl+O')
         importing.setObjectName("Importing")
         tool_bar.addAction(importing)
-        exporting = QtWidgets.QAction(QtGui.QIcon('icon/export.png'), 'Export', MainWindow)
+        exporting = QtWidgets.QAction(QtGui.QIcon('icon\export.png'), 'Export', self)
         exporting.triggered.connect(self.__export)
         exporting.setShortcut('Ctrl+S')
         exporting.setObjectName("Exporting")
         tool_bar.addAction(exporting)
-        MainWindow.addToolBar(tool_bar)
+        self.addToolBar(tool_bar)
 
         # Central Widget
-        self.centralwidget = QtWidgets.QStackedWidget(MainWindow)
+        self.centralwidget = QtWidgets.QStackedWidget(self)
         self.centralwidget.setObjectName("centralwidget")
-        MainWindow.setCentralWidget(self.centralwidget)
+        self.setCentralWidget(self.centralwidget)
 
         # Welcome Widget
         self.welcomewidget = QtWidgets.QWidget()
@@ -82,27 +83,37 @@ class Ui_MainWindow(object):
         # Waiting widget
         self.waiting_widget = QtWidgets.QLabel()
         self.centralwidget.addWidget(self.waiting_widget)
-
-        self.retranslateUi(MainWindow)
         self.centralwidget.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "CHALK"))
+
+    # Whenever resize occur, it emits signal to resize gif
+    def resizeEvent(self, event):
+        self.resized.emit()
+        return super(Ui_MainWindow, self).resizeEvent(event)
+
+    def _resizeGif(self):
+        rect = self.centralwidget.geometry()
+        size = QtCore.QSize(rect.width(), rect.height())
+        self.gif.setScaledSize(size)
+        self.waiting_widget.setMovie(self.gif)
+        self.gif.start()
 
     # Scanning function toolbar
     def __scan(self):
-        gif = QtGui.QMovie('icon\waiting.gif')
-        rect = MainWindow.geometry()
-        size = QtCore.QSize(rect.width(), rect.height())
-        gif.setScaledSize(size)
-        self.waiting_widget.setMovie(gif)
-        gif.start()
-        self.centralwidget.setCurrentIndex(2)
-        self.scan.run() # run the scan
+        try:
+            self.gif = QtGui.QMovie('icon\waiting.gif')
+            rect = self.centralwidget.geometry()
+            size = QtCore.QSize(rect.width(), rect.height())
+            self.gif.setScaledSize(size)
+            self.waiting_widget.setMovie(self.gif)
+            self.gif.start()
+            self.resized.connect(self._resizeGif)
+            self.centralwidget.setCurrentIndex(2)
+        except Exception as e:
+            print(e)
+        """self.scan.run() # run the scan
         self.data_hub.analyseData('finalresult.csv') # process the csv file
-        self.display_result() # display network visualization
+        self.display_result() # display network visualization"""
 
     def display_result(self):
         try:
@@ -117,7 +128,7 @@ class Ui_MainWindow(object):
 
     # Import function toolbar
     def __import(self):
-        filename_path, ok = QtWidgets.QFileDialog.getOpenFileName(MainWindow,
+        filename_path, ok = QtWidgets.QFileDialog.getOpenFileName(self,
                                                                   "Open File",
                                                                   "",
                                                                   "All Files (*);;Text Files (*.txt)")
@@ -128,7 +139,7 @@ class Ui_MainWindow(object):
     # Export function toolbar
     def __export(self):
         try:
-            result = QtWidgets.QFileDialog.getSaveFileName(MainWindow,
+            result = QtWidgets.QFileDialog.getSaveFileName(self,
                                                            'Save File', '',
                                                            "PDF (*.pdf)")
             file_path = result[0]
@@ -212,8 +223,6 @@ class Ui_MainWindow(object):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
+    ui.show()
     sys.exit(app.exec_())
