@@ -1,6 +1,5 @@
 import base64
 from io import BytesIO
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 from Label import Label
@@ -80,6 +79,10 @@ class Ui_MainWindow(object):
         horizontalLayout.addWidget(listView, 0, QtCore.Qt.AlignRight)
         self.centralwidget.addWidget(self.result_widget)
 
+        # Waiting widget
+        self.waiting_widget = QtWidgets.QLabel()
+        self.centralwidget.addWidget(self.waiting_widget)
+
         self.retranslateUi(MainWindow)
         self.centralwidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -90,7 +93,13 @@ class Ui_MainWindow(object):
 
     # Scanning function toolbar
     def __scan(self):
-        self.centralwidget.setCurrentIndex(0)
+        gif = QtGui.QMovie('icon\waiting.gif')
+        rect = MainWindow.geometry()
+        size = QtCore.QSize(rect.width(), rect.height())
+        gif.setScaledSize(size)
+        self.waiting_widget.setMovie(gif)
+        gif.start()
+        self.centralwidget.setCurrentIndex(2)
         self.scan.run() # run the scan
         self.data_hub.analyseData('finalresult.csv') # process the csv file
         self.display_result() # display network visualization
