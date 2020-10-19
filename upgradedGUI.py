@@ -58,7 +58,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.welcomewidget = QtWidgets.QWidget()
         horizontallayout = QtWidgets.QHBoxLayout(self.welcomewidget)
         label = Label(self.welcomewidget)
-        piximap = QtGui.QPixmap('icon\welcome.png')
+        piximap = QtGui.QPixmap('icon/welcome.png')
         label.setPixmap(piximap)
         horizontallayout.addWidget(label)
         self.centralwidget.addWidget(self.welcomewidget)

@@ -22,12 +22,28 @@ class Data_Analysis():
         self.systemList = []
         self.scanBoolean = True
 
+    # This function uses a regex pattern to pull the IP Addresses out of a NMAP row in the csv file.
+    # It is called by the dataAnalysis() function when dealing with Nmap rows of data as required.
+    # Input: The required csv row is passed to the function.
+    # Ouput: Once all of the IP Addresses have been recorded, it is returned as a list.
+    def getIpAddress(self, rowString):
+        ipAddress = []
+        regex = '\d{1,3}[.]\d{1,3}[.]\d{1,3}[.]\d{1,3}'
+        ipList = re.findall(regex, rowString)
+        ipList = list(dict.fromkeys(ipList))
+        for i in range(1, len(ipList)):
+            if not self.systemCheck(ipList[i]):
+                ipAddress.append(ipList[i])
+            else:
+                continue
+        return ipAddress
+
     # This function uses a regex pattern to pull the IP Address out of a row in the csv file.
-    # It is called by the dataAnalysis() function when dealing with both Nmap and vulnerability
-    # rows of data as required.
+    # It is called by the dataAnalysis() function when dealing with vulnerability rows of
+    # data as required.
     # Input: The required csv row is passed to the function.
     # Ouput: Once the IP Address has been recorded, it is returned as a string.
-    def getIpAddress(self, rowString):
+    def checkIpAddress(self, rowString):
         ipAddress = ""
         regex = '\d{1,3}[.]\d{1,3}[.]\d{1,3}[.]\d{1,3}'
         ipAddress = re.findall(regex, rowString)
@@ -58,32 +74,36 @@ class Data_Analysis():
     # Input: The required csv row is passed to the function.
     # Output: A list of ports in the format [Port Number, Port Name, Raw Data] for
     # each port entry in the list.
-    def getPorts(self, rowString):
+    def getPorts(self, rowString, ipAddr):
         regex = '[0-9]+[:][ ]'
         ports = []
         port = []
-        temp = rowString.split("}")
+        temp = rowString.split('}}}')
         portName = ''
+        for f in temp:
+            if re.search(ipAddr, f):
+                temp = str(f).split("}")
+                break
         for e in temp:
             x = str(e)
             if re.search(regex, x):
                 a = str(re.findall(regex, x))
-                port.append(a.replace(": ", "").replace("'", "").replace("]", "").replace("[", ""))
+                port.append(a.replace(": ", "").replace("'", "").replace("]", "").replace("[", "").replace("}", ""))
                 charCount = 0
                 portName = ''
                 # The FOR loop is used to ensure that only the required information is stored for
-                # each of the ports  found.
+                # each of the ports found.
                 for c in x:
                     if c == ',':
                         charCount = charCount + 1
                     if charCount == 4:
                         break
                     if charCount == 3:
-                            portName = portName + c
+                        portName = portName + c
                 # Append port number.
                 port.append(portName.replace("'", "").replace("nam': ", "").replace(", ", ""))
                 # Append port name.
-                port.append(x.replace("tcp: {", "")[2:])
+                port.append(x.replace("'tcp': {", "")[2:])
                 # Append raw data for the port.
                 ports.append(port)
                 port = []
@@ -149,7 +169,7 @@ class Data_Analysis():
         # Once the csv results file is open, relevant data is recorded in real time.
         with open(filename, mode='r') as csvFile:
             tempSystem = None
-            ipAddress = ''
+            ipAddress = []
             ports = []
             rowCount = -1
             skipRows = False
@@ -166,25 +186,26 @@ class Data_Analysis():
                 # VULNERABILITY SCAN RESULTS header in the csv.
                 if nmapRow and re.search(regex, row):
                     ipAddress = self.getIpAddress(row)
-                    # If system object doesnt already exist with the found ipAddress value.
-                    if not self.systemCheck(ipAddress):
-                        tempSystem = systemObj()
-                        tempSystem.ipAddress = ipAddress
-                        tempSystem.SystemID = self.calcSystemId()
-                        #tempSystem.operatingSystem = osDetect(ipAddress)
-                        ports.append(self.getPorts(row))
-                        tempSystem.openPorts = ports
-                        tempSystem.shortPorts = self.shortList(tempSystem.openPorts)
-                        tempSystem.numOpenPorts = len(tempSystem.shortPorts)
-                        self.systemList.append(tempSystem)
-                        print('System with IP Address: ' + ipAddress + ' added to the results list.')
-                        ports = []
-                        tempSystem = None
-                        ipAddress = ''
+                    for ip in ipAddress:
+                        # If system object doesnt already exist with the found ipAddress value.
+                        if not self.systemCheck(str(ip)):
+                            tempSystem = systemObj()
+                            tempSystem.ipAddress = str(ip)
+                            tempSystem.SystemID = self.calcSystemId()
+                            #tempSystem.operatingSystem = self.osDetect(str(ip))
+                            ports.append(self.getPorts(row, str(ip)))
+                            tempSystem.openPorts = ports
+                            tempSystem.shortPorts = self.shortList(tempSystem.openPorts)
+                            tempSystem.numOpenPorts = len(tempSystem.shortPorts)
+                            self.systemList.append(tempSystem)
+                            print('System with IP Address: ' + str(ip) + ' added to the results list.')
+                            ports = []
+                            tempSystem = None
+                    ipAddress = []
                 # If the row is bellow the VULNERABILITY SCAN RESULTS header in the csv.
                 if not nmapRow:
                     if str(row).__contains__("Target IP"):
-                        tempAddress = self.getIpAddress(row)
+                        tempAddress = self.checkIpAddress(row)
                         vulnerableList.clear()
                     elif str(row).__contains__("Start Time"):
                         recordFlag = 1
@@ -221,8 +242,27 @@ class Data_Analysis():
     # Output: A rank value with 1 being 100 or no vulnerabilities.
     def rankSystem(self, sys):
         rank = 1
-        rank -= (sys.numOpenPorts * 0.01)
-        rank -= (sys.numberVulnerabilities * 0.05)
+        total = 0
+        avg = 0
+        lowestVuln = -1
+        for e in self.systemList:
+            total += int(e.numOpenPorts)
+            if lowestVuln == -1:
+                lowestVuln = e.numberVulnerabilities
+            elif e.numberVulnerabilities < lowestVuln:
+                lowestVuln = e.numberVulnerabilities
+            else:
+                continue
+        avg = total / len(self.systemList)
+        if int(sys.numOpenPorts) < avg:
+            rank = 0.7
+        elif int(sys.numOpenPorts) == avg:
+            rank = 0.8
+        elif int(sys.numOpenPorts) > avg and int(sys.numOpenPorts) < 1:
+            rank = 0.9
+        rank -= (sys.numberVulnerabilities * 0.03)
+        if rank < 0:
+            rank = 0
         return "%.2f" % rank
 
     # This function uses Nmap to detect the operating system that is running on
@@ -257,4 +297,4 @@ if __name__ == '__main__':
     t = Data_Analysis()
     t.analyseData("result.csv")
     t.checkSystems("p")
-    print(len(t.systemList))
+    print('The number of systems recorded is: ' + str(len(t.systemList)))
