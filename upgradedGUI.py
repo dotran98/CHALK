@@ -80,51 +80,20 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         horizontalLayout.addWidget(listView, 0, QtCore.Qt.AlignRight)
         self.centralwidget.addWidget(self.result_widget)
 
-        # Waiting widget
-        self.waiting_widget = QtWidgets.QLabel()
-        self.centralwidget.addWidget(self.waiting_widget)
-        self.centralwidget.setCurrentIndex(0)
-
-
-    # Whenever resize occur, it emits signal to resize gif
-    def resizeEvent(self, event):
-        self.resized.emit()
-        return super(Ui_MainWindow, self).resizeEvent(event)
-
-    def _resizeGif(self):
-        rect = self.centralwidget.geometry()
-        size = QtCore.QSize(rect.width(), rect.height())
-        self.gif.setScaledSize(size)
-        self.waiting_widget.setMovie(self.gif)
-        self.gif.start()
 
     # Scanning function toolbar
     def __scan(self):
-        try:
-            self.gif = QtGui.QMovie('icon\waiting.gif')
-            rect = self.centralwidget.geometry()
-            size = QtCore.QSize(rect.width(), rect.height())
-            self.gif.setScaledSize(size)
-            self.waiting_widget.setMovie(self.gif)
-            self.gif.start()
-            self.resized.connect(self._resizeGif)
-            self.centralwidget.setCurrentIndex(2)
-        except Exception as e:
-            print(e)
-        """self.scan.run() # run the scan
+        self.scan.run() # run the scan
         self.data_hub.analyseData('finalresult.csv') # process the csv file
-        self.display_result() # display network visualization"""
+        self.display_result()  # display network visualization
 
     def display_result(self):
-        try:
-            tab = Graph(self.data_hub.systemList)
-            tab.draw_idle()
-            tab.figure.savefig(self.bio, format="png")
-            self.tabWidget.addTab(tab, "Network")
-        except Exception as e:
-            print(e)
-
+        tab = Graph(self.data_hub.systemList)
+        tab.draw_idle()
+        tab.figure.savefig(self.bio, format="png")
+        self.tabWidget.addTab(tab, "Network")
         self.centralwidget.setCurrentIndex(1)
+
 
     # Import function toolbar
     def __import(self):
