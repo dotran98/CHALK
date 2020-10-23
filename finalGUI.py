@@ -200,7 +200,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                             pdf.ln(5)
                 pdf.cell(20, 0.0)
                 pdf.cell(page_width-30, 5.0, "Vulnerabilities: " + str(system.numberVulnerabilities))
-                pdf.ln(5)
+                pdf.ln(10)
                 for vul in system.vulnerabilities:
                     pdf.cell(30, 0.0)
                     pdf.multi_cell(page_width-50, 5.0, str(vul))
