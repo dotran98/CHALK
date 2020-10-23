@@ -1,0 +1,52 @@
+NMAP SCAN RESULTS
+
+': {'timestr': 'Sat Oct 17 11:57:44 2020', 'elapsed': '23.17', 'uphosts': '4', 'downhosts': '252', 'totalhosts': '256'}}, 'scan': {'10.0.2.1': {'hostnames': [{'name': '_gateway', 'type': 'PTR'}], 'addresses': {'ipv4': '10.0.2.1'}, 'vendor': {}, 'status': {'state': 'up', 'reason': 'conn-refused'}, 'tcp': {53: {'state': 'open', 'reason': 'syn-ack', 'name': 'domain', 'product': 'dnsmasq', 'version': '2.76', 'extrainfo': '', 'conf': '10', 'cpe': 'cpe:/a:thekelleys:dnsmasq:2.76'}}}, '10.0.2.4': {'hostnames': [{'name': '', 'type': ''}], 'addresses': {'ipv4': '10.0.2.4'}, 'vendor': {}, 'status': {'state': 'up', 'reason': 'syn-ack'}, 'tcp': {22: {'state': 'open', 'reason': 'syn-ack', 'name': 'ssh', 'product': 'OpenSSH', 'version': '7.8', 'extrainfo': 'FreeBSD 20180909; protocol 2.0', 'conf': '10', 'cpe': 'cpe:/o:freebsd:freebsd'}, 80: {'state': 'open', 'reason': 'syn-ack', 'name': 'http', 'product': 'Apache httpd', 'version': '2.4.46', 'extrainfo': '(FreeBSD)', 'conf': '10', 'cpe': 'cpe:/a:apache:http_server:2.4.46'}}}, '10.0.2.5': {'hostnames': [{'name': '', 'type': ''}], 'addresses': {'ipv4': '10.0.2.5'}, 'vendor': {}, 'status': {'state': 'up', 'reason': 'syn-ack'}, 'tcp': {22: {'state': 'open', 'reason': 'syn-ack', 'name': 'ssh', 'product': 'OpenSSH', 'version': '6.7', 'extrainfo': 'protocol 2.0', 'conf': '10', 'cpe': 'cpe:/a:openbsd:openssh:6.7'}, 80: {'state': 'open', 'reason': 'syn-ack', 'name': 'http', 'product': 'Microsoft IIS httpd', 'version': '7.5', 'extrainfo': '', 'conf': '10', 'cpe': 'cpe:/o:microsoft:windows'}}}, '10.0.2.15': {'hostnames': [{'name': 'siftworkstation', 'type': 'PTR'}], 'addresses': {'ipv4': '10.0.2.15'}, 'vendor': {}, 'status': {'state': 'up', 'reason': 'syn-ack'}, 'tcp': {22: {'state': 'open', 'reason': 'syn-ack', 'name': 'ssh', 'product': 'OpenSSH', 'version': '7.6p1 Ubuntu 4ubuntu0.3', 'extrainfo': 'Ubuntu Linux; protocol 2.0', 'conf': '10', 'cpe': 'cpe:/o:linux:linux_kernel'}, 80: {'state': 'open', 'reason': 'syn-ack', 'name': 'http', 'product': 'Apache httpd', 'version': '2.4.29', 'extrainfo': '(Ubuntu)', 'conf': '10', 'cpe': 'cpe:/a:apache:http_server:2.4.29'}, 139: {'state': 'open', 'reason': 'syn-ack', 'name': 'netbios-ssn', 'product': 'Samba smbd', 'version': '3.X - 4.X', 'extrainfo': 'workgroup: SANS', 'conf': '10', 'cpe': 'cpe:/a:samba:samba'}, 445: {'state': 'open', 'reason': 'syn-ack', 'name': 'netbios-ssn', 'product': 'Samba smbd', 'version': '3.X - 4.X', 'extrainfo': 'workgroup: SANS', 'conf': '10', 'cpe': 'cpe:/a:samba:samba'}, 3389: {'state': 'open', 'reason': 'syn-ack', 'name': 'ms-wbt-server', 'product': 'xrdp', 'version': '', 'extrainfo': '', 'conf': '10', 'cpe': 'cpe:/a:jay_sorg:xrdp'}}}}}
+
+VULNERABILITY SCAN RESULTS 
+
+- Nikto v2.1.5
+---------------------------------------------------------------------------
++ No web server found on 10.0.2.0:80
+---------------------------------------------------------------------------
++ Target IP:          10.0.2.5
++ Target Hostname:    10.0.2.5
++ Target Port:        80
++ Start Time:         2020-10-17 11:57:45 (GMT0)
+---------------------------------------------------------------------------
++ Server: Microsoft-IIS/7.5
++ Server leaks inodes via ETags, header found with file /, fields: 0x629ddfcf72a4d61:0 
++ The anti-clickjacking X-Frame-Options header is not present.
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ Server banner has changed from 'Microsoft-IIS/7.5' to 'Microsoft-HTTPAPI/2.0' which may suggest a WAF, load balancer or proxy is in place
++ Allowed HTTP Methods: OPTIONS, TRACE, GET, HEAD, POST 
++ Public HTTP Methods: OPTIONS, TRACE, GET, HEAD, POST 
++ /: Appears to be a default IIS 7 install.
++ 6544 items checked: 0 error(s) and 5 item(s) reported on remote host
++ End Time:           2020-10-17 11:58:01 (GMT0) (16 seconds)
+---------------------------------------------------------------------------
++ Target IP:          10.0.2.15
++ Target Hostname:    10.0.2.15
++ Target Port:        80
++ Start Time:         2020-10-17 11:58:01 (GMT0)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.29 (Ubuntu)
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ Allowed HTTP Methods: HEAD, GET, POST, OPTIONS 
++ OSVDB-561: /server-status: This reveals Apache information. Comment out appropriate line in httpd.conf or restrict access to allowed hosts.
++ OSVDB-3233: /icons/README: Apache default file found.
++ 6544 items checked: 0 error(s) and 3 item(s) reported on remote host
++ End Time:           2020-10-17 11:58:17 (GMT0) (16 seconds)
+---------------------------------------------------------------------------
++ Target IP:          10.0.2.4
++ Target Hostname:    10.0.2.4
++ Target Port:        80
++ Start Time:         2020-10-17 11:58:17 (GMT0)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.46 (FreeBSD)
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ Allowed HTTP Methods: GET, POST, OPTIONS, HEAD, TRACE 
++ OSVDB-877: HTTP TRACE method is active, suggesting the host is vulnerable to XST
++ 6544 items checked: 0 error(s) and 2 item(s) reported on remote host
++ End Time:           2020-10-17 11:58:35 (GMT0) (18 seconds)
+---------------------------------------------------------------------------
++ 3 host(s) tested
