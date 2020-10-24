@@ -1,0 +1,10 @@
+Required python packages
+
+(all packages can be downloaded with pip install)
+
+matplotlib
+fpdf 
+networkx 
+PyQt5 
+python-nmap
+
